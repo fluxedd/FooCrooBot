@@ -1,18 +1,55 @@
-from telegram import InlineKeyboardButton, Update 
+from typing import Dict
+from telegram import InlineKeyboardButton, ReplyKeyboardMarkup, Update 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, ContextTypes, ConversationHandler, PicklePersistence
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 import os
 
 API_KEY = os.getenv('API_KEY')
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
+CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
-def log(update: Update, context: CallbackContext) -> int:
+reply_choices = [
+    ['Main Quest', 'Side Quest'], 
+    ['Done'],
+]
+markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True)
+ 
+def format_log(log_data: Dict[str, str]) -> str:
+    log = [f'{key} \n {value}' for key, value in log_data.items()]
+    return "\n".join(log)
+    
+def start(update: Update, context: CallbackContext) -> int:
+    reply_text="Please choose an option:"
     update.message.reply_text(
-        "Enter the name of the restaurant:"
+        reply_text, reply_markup=markup
     )
 
+    return CHOOSING
+
+def restaurant_choice(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        'Enter the name of the restaurant:'
+    )
+
+    return USER_CHOICE
+
+def quest_details(update: Update, context: CallbackContext) -> int:
+    context.user_data['choice'] = update.message.text
+    reply_text = f'Who are the participants to go to {update.message.text}?'
+
+    update.message.reply_text(reply_text)
+
     return TYPING_REPLY
+
+# def side_quest_choice(update: Update, context: CallbackContext) -> int:
+#     update.message.reply_text(
+#         'Please enter main quest log in the specified format:'
+#         '*Restaurant*'
+#         '*Attendees* e.g. Mark, Jericho, Eril'
+#         '*Date* e.g. July 7th, 2022'
+#     )
+
+#     return USER_CHOICE
 
 def log_list(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(
@@ -20,19 +57,19 @@ def log_list(update: Update, context: CallbackContext) -> None:
     )
 
 def log_info(update: Update, context: CallbackContext) -> int:
-    text = update.message.text
-    category = context.user_data['choice']
-    del context.user_data
+    category = context.user_data["choice"]
+    context.user_data[category] = update.message.text
+    del context.user_data["choice"]
 
     update.message.reply_text(
-        "Cool this is what you've logged so far:"
-        f"{context.user_data}"
+        "Foo'Croo Log List \n"
+        f"{format_log(context.user_data)}"
     )
 
     return CHOOSING
 
 def fallback_test(update, context) -> int:
-    update.message.reply_text("test")
+    update.message.reply_text("did not work")
 
     return ConversationHandler.END
 
@@ -44,18 +81,21 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('log', log)],
+        entry_points=[CommandHandler('start', start)],
         states={
-           TYPING_CHOICE: [
-               MessageHandler(
-                   Filters.text & ~(Filters.command), log
-               )
-           ],
-           TYPING_REPLY: [
-               MessageHandler(
-                   Filters.text & ~(Filters.command), log_info
-               )
-           ]
+            CHOOSING: [
+                MessageHandler(Filters.regex('^Main Quest$'), restaurant_choice), 
+            ],
+            USER_CHOICE: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), quest_details
+                )
+            ],
+            TYPING_REPLY: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_info
+                )
+            ]
         },
         fallbacks=[MessageHandler(Filters.text, fallback_test)],
         name="log_convo",
