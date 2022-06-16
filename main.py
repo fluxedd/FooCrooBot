@@ -16,7 +16,8 @@ markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True, selective=Tr
 def format_log(log_data: Dict[str, str]) -> str:
     log = [f'\n{key} \nAttendees: {value}' for key, value in log_data.items()]
     return "\n".join(log)
-    
+
+
 def start(update: Update, context: CallbackContext) -> int:
     reply_text="Please choose an option:"
     update.message.reply_text(
@@ -25,9 +26,17 @@ def start(update: Update, context: CallbackContext) -> int:
 
     return CHOOSING
 
-def restaurant_choice(update: Update, context: CallbackContext) -> int:
+def mq_restaurant_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        'Enter the name of the restaurant and date:\n<i>example: Choichi Ramen - June 9 2022</i>',
+        'Enter the name of the restaurant and date:\n<i>example: Choichi Ramen - June 9 2022 - MQ</i>',
+        parse_mode='HTML'
+    )
+
+    return USER_CHOICE
+
+def sq_choice(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        "Enter the name of the side quest:\n<i>example: Ken's Rerun - June 27 2022 - SQ</i>",
         parse_mode='HTML'
     )
 
@@ -80,7 +89,8 @@ def main() -> None:
         entry_points=[CommandHandler('start', start)],
         states={
             CHOOSING: [
-                MessageHandler(Filters.regex('^Main Quest$'), restaurant_choice), 
+                MessageHandler(Filters.regex('^Main Quest$'), mq_restaurant_choice), 
+                MessageHandler(Filters.regex('^Side Quest$'), sq_choice),
             ],
             USER_CHOICE: [
                 MessageHandler(
