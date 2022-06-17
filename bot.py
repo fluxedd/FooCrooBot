@@ -3,6 +3,7 @@ from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
 
+PORT = int(os.environ.get('PORT', '8443'))
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -159,9 +160,9 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
-                          port=os.environ.get('PORT', 80),
-                          url_path="5347268144:AAHrjcS7lCMShXFlBvH8YXBj4Bo6-DeNs2Q")
-    updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAHrjcS7lCMShXFlBvH8YXBj4Bo6-DeNs2Q")
+                          port=PORT,
+                          url_path="5347268144:AAHrjcS7lCMShXFlBvH8YXBj4Bo6-DeNs2Q",
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAHrjcS7lCMShXFlBvH8YXBj4Bo6-DeNs2Q"), 
     updater.idle()
 
 if __name__ == '__main__':
