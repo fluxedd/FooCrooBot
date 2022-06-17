@@ -92,7 +92,7 @@ def commands_list(update: Update, context: CallbackContext) -> str:
 
 def source_code(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
-        text="https://github.com/fluxedd/FooCrooBot"
+        text="You can find the source code for this project at:\n\nhttps://github.com/fluxedd/FooCrooBot"
     )
 
 def delete_entry(update: Update, context: CallbackContext):
