@@ -1,2 +1,4 @@
 .env
 loglist
+config.py
+__pycache__

@@ -2,10 +2,9 @@ from typing import Dict
 from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
+import config
 
 PORT = int(os.environ.get('PORT', 13978))
-
-API_KEY = os.getenv('API_KEY')
 
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
@@ -116,7 +115,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None:
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(API_KEY, persistence=persistence)
+    updater = Updater(config.token, persistence=persistence)
 
     dispatcher = updater.dispatcher
 
@@ -164,8 +163,8 @@ def main() -> None:
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path=API_KEY)
-    updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + API_KEY)
+                          url_path=config.token)
+    updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + config.token)
     updater.idle()
 
 if __name__ == '__main__':
