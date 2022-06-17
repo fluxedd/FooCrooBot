@@ -2,7 +2,8 @@ from typing import Dict
 from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
-import json
+
+PORT = int(os.environ.get('PORT', 5000))
 
 API_KEY = os.getenv('API_KEY')
 
@@ -161,7 +162,10 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("commands", commands_list))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
-    updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0",
+                          port=int(PORT),
+                          url_path=API_KEY)
+    updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + API_KEY)
     updater.idle()
 
 if __name__ == '__main__':
