@@ -4,8 +4,6 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 import os
 import config
 
-PORT = int(os.environ.get('PORT', 13978))
-
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -162,7 +160,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
+                          port=os.environ.get('PORT', 13978),
                           url_path=config.token)
     updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + config.token)
     updater.idle()
