@@ -41,7 +41,7 @@ def sq_choice(update: Update, context: CallbackContext) -> int:
     return USER_CHOICE
 
 def quest_details(update: Update, context: CallbackContext) -> int:
-    context.user_data['choice'] = update.message.text
+    context.bot_data['choice'] = update.message.text
     reply_text = f'Who are the participants to go to {update.message.text}?'
 
     update.message.reply_text(reply_text)
@@ -50,14 +50,14 @@ def quest_details(update: Update, context: CallbackContext) -> int:
 
 def log_list(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(
-        text=f"<b><u>Foo'Croo Log List</u></b>\n{format_log(context.user_data)}",
+        text=f"<b><u>Foo'Croo Log List</u></b>\n{format_log(context.bot_data)}",
         parse_mode='HTML'
     )
 
 def log_info(update: Update, context: CallbackContext) -> int:
-    category = context.user_data["choice"]
-    context.user_data[category] = update.message.text
-    del context.user_data["choice"]
+    category = context.bot_data["choice"]
+    context.bot_data[category] = update.message.text
+    del context.bot_data["choice"]
 
     update.message.reply_text(
         text="<b><u>SUCCESSFULLY LOGGED</u></b>\n\nUse /logs to view the log list.",
@@ -67,8 +67,8 @@ def log_info(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 def done(update: Update, context: CallbackContext) -> int:
-    if 'choice' in context.user_data:
-        del context.user_data['choice']
+    if 'choice' in context.bot_data:
+        del context.bot_data['choice']
 
     update.message.reply_text(
         text="<b><u>SUCCESSFULLY LOGGED</u></b>\n\nUse /logs to view the log list.",
@@ -103,7 +103,7 @@ def delete_entry(update: Update, context: CallbackContext):
     return USER_CHOICE
 
 def confirm_delete(update: Update, context: CallbackContext):
-    context.user_data.pop(update.message.text)
+    context.bot_data.pop(update.message.text)
     update.message.reply_text(
         text=f"{update.message.text} - <b><u>SUCCESSFULLY REMOVED</u></b>\n\nUse /logs to view the log list.",
         parse_mode='HTML'
