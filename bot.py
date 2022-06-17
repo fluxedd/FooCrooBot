@@ -2,7 +2,6 @@ from typing import Dict
 from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
-import config
 
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
