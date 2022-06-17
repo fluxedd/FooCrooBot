@@ -1,3 +1,3 @@
 # FooCrooBot
 
-A Telegram bot for simplifying logging data through conversation using the python-telegram-bot API
+A Telegram bot that simplifies logging data through conversation using the python-telegram-bot API.
