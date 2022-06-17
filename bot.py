@@ -3,6 +3,7 @@ from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
 
+
 PORT = int(os.environ.get('PORT', '8443'))
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
@@ -113,7 +114,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None:
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(os.environ.get('TOKEN'), persistence=persistence)
+    updater = Updater(os.getenv("TOKEN"), persistence=persistence)
 
     dispatcher = updater.dispatcher
 
