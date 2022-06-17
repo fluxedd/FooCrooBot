@@ -3,7 +3,7 @@ from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
 
-PORT = int(os.environ.get('PORT', 5000))
+PORT = int(os.environ.get('PORT', 13978))
 
 API_KEY = os.getenv('API_KEY')
 
@@ -163,7 +163,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
-                          port=int(PORT),
+                          port=PORT,
                           url_path=API_KEY)
     updater.bot.setWebhook('https://fierce-sierra-52458.herokuapp.com/' + API_KEY)
     updater.idle()
