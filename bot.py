@@ -3,8 +3,8 @@ from telegram import ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
 
-
 PORT = int(os.environ.get('PORT', '8443'))
+TOKEN = os.environ.get('TOKEN')
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -114,7 +114,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None:
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(os.getenv("TOKEN"), persistence=persistence)
+    updater = Updater(token=TOKEN, persistence=persistence)
 
     dispatcher = updater.dispatcher
 
@@ -162,8 +162,8 @@ def main() -> None:
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path="5347268144:AAFZKtrWdNNQQpFD6QpmEal6RbjRThnxvZo",
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAFZKtrWdNNQQpFD6QpmEal6RbjRThnxvZo"), 
+                          url_path=TOKEN,
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
     updater.idle()
 
 if __name__ == '__main__':
