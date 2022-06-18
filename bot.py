@@ -115,7 +115,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 def main() -> None:
     persistence = PicklePersistence(filename='loglist')
     bot = Bot(token=TOKEN)
-    updater = Updater(bot=bot, persistence=persistence)
+    updater = Updater("5347268144:AAFZKtrWdNNQQpFD6QpmEal6RbjRThnxvZo", persistence=persistence)
 
     dispatcher = updater.dispatcher
 
