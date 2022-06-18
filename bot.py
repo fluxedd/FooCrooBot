@@ -1,5 +1,5 @@
 from typing import Dict
-from telegram import ParseMode, ReplyKeyboardMarkup, Update
+from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
 
@@ -114,7 +114,8 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None:
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token=TOKEN, persistence=persistence)
+    bot = Bot(token=TOKEN)
+    updater = Updater(bot=bot, persistence=persistence)
 
     dispatcher = updater.dispatcher
 
