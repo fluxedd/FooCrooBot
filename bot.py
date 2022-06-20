@@ -117,7 +117,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 def main() -> None: 
     TOKEN = os.getenv("TOKEN")
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token=str(TOKEN), persistence=persistence)
+    updater = Updater("5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8", persistence=persistence)
 
     dispatcher = updater.dispatcher
 
@@ -166,7 +166,7 @@ def main() -> None:
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
                           url_path=TOKEN,
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + str(TOKEN)), 
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8"), 
     updater.idle()
 
 if __name__ == '__main__':
