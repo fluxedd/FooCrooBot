@@ -2,7 +2,6 @@ from typing import Dict
 from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
-import js2py
 from dotenv import load_dotenv
 
 load_dotenv()
