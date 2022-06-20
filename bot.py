@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
+TOKEN = os.getenv("TOKEN")
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -115,9 +116,8 @@ def confirm_delete(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def main() -> None: 
-    TOKEN = os.getenv("TOKEN")
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater("5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8", persistence=persistence)
+    updater = Updater(token="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8", persistence=persistence)
 
     dispatcher = updater.dispatcher
 
@@ -165,7 +165,7 @@ def main() -> None:
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path=TOKEN,
+                          url_path="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8",
                           webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8"), 
     updater.idle()
 
