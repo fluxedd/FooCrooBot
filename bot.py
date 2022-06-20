@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
-TOKEN = os.getenv("TOKEN")
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -116,6 +115,7 @@ def confirm_delete(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def main() -> None: 
+    TOKEN = os.getenv("TOKEN")
     persistence = PicklePersistence(filename='loglist')
     updater = Updater(token=TOKEN, persistence=persistence)
 
