@@ -166,8 +166,8 @@ def main() -> None:
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path='5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8',
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + '5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8'), 
+                          url_path=TOKEN,
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
     updater.idle()
 
 if __name__ == '__main__':
