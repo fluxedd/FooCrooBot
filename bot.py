@@ -2,9 +2,13 @@ from typing import Dict
 from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import os
+import js2py
+from dotenv import load_dotenv
+
+load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
-TOKEN = os.environ.get('TOKEN')
+TOKEN = os.getenv("TOKEN")
 CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
 
 reply_choices = [
@@ -112,9 +116,9 @@ def confirm_delete(update: Update, context: CallbackContext):
 
     return ConversationHandler.END
 
-def main() -> None:
+def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater("5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8", persistence=persistence)
+    updater = Updater(token=TOKEN, persistence=persistence)
 
     dispatcher = updater.dispatcher
 
