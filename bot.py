@@ -3,8 +3,13 @@ from typing import Dict
 from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 from dotenv import load_dotenv
+import js2py
+import temp
 
 load_dotenv()
+
+js2py.translate_file("ping.js", "bot.py")
+temp.wakeup()
 
 PORT = int(os.environ.get('PORT', '8443'))
 TOKEN = os.getenv("TOKEN")
