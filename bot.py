@@ -1,3 +1,4 @@
+TOKEN = os.getenv("TOKEN")
 from typing import Dict
 from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
@@ -115,7 +116,6 @@ def confirm_delete(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def main() -> None: 
-    TOKEN = os.getenv("TOKEN")
     persistence = PicklePersistence(filename='loglist')
     updater = Updater(token=TOKEN, persistence=persistence)
 
