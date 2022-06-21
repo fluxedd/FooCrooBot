@@ -117,7 +117,8 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8", persistence=persistence)
+    # restaurants_persistence = PicklePersistence(filename='potentials')
+    updater = Updater(token="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8")
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
