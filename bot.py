@@ -1,5 +1,8 @@
+from cgitb import html
 import os
+from turtle import update
 from typing import Dict
+from setuptools import Command
 from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 from dotenv import load_dotenv
@@ -8,16 +11,21 @@ load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
 TOKEN = os.getenv("TOKEN")
-CHOOSING, TYPING_REPLY, USER_CHOICE = range(3)
+CHOOSING, LOG_REPLY, RESTAURANT_REPLY, LOG_CHOICE, RESTAURANT_CHOICE = range(5)
 
 reply_choices = [
     ['Main Quest', 'Side Quest'],
+    ['Add Restaurant']
 ]
 markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True, selective=True)
  
 def format_log(log_data: Dict[str, str]) -> str:
     log = [f'\n{key} \nAttendees: {value}' for key, value in log_data.items()]
     return "\n".join(log)
+
+def format_restaurants(restaurant_data: Dict[str, str]) -> str:
+    list = [f'\n{key} @ {value}' for key, value in restaurant_data.items()]
+    return "\n".join(list)
 
 
 def start(update: Update, context: CallbackContext) -> int:
@@ -34,7 +42,7 @@ def mq_restaurant_choice(update: Update, context: CallbackContext) -> int:
         parse_mode='HTML'
     )
 
-    return USER_CHOICE
+    return LOG_CHOICE
 
 def sq_choice(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
@@ -42,7 +50,15 @@ def sq_choice(update: Update, context: CallbackContext) -> int:
         parse_mode='HTML'
     )
 
-    return USER_CHOICE
+    return LOG_CHOICE
+
+def restaurant_choice(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        "Enter the potential Foo'Croo restaurant:\n<i>example: East Ocean</i>",
+        parse_mode='HTML'
+    )
+
+    return RESTAURANT_CHOICE
 
 def quest_details(update: Update, context: CallbackContext) -> int:
     context.bot_data['choice'] = update.message.text
@@ -50,13 +66,15 @@ def quest_details(update: Update, context: CallbackContext) -> int:
 
     update.message.reply_text(reply_text)
 
-    return TYPING_REPLY
+    return LOG_REPLY
 
-def log_list(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(
-        text=f"<b><u>Foo'Croo Log List</u></b>\n{format_log(context.bot_data)}",
-        parse_mode='HTML'
-    )
+def restaurant_details(update: Update, context: CallbackContext) -> int:
+    context.chat_data['choice'] = update.message.text
+    reply_text = f'What is the address of {update.message.text}?'
+
+    update.message.reply_text(reply_text)
+
+    return RESTAURANT_REPLY
 
 def log_info(update: Update, context: CallbackContext) -> int:
     category = context.bot_data["choice"]
@@ -70,12 +88,24 @@ def log_info(update: Update, context: CallbackContext) -> int:
 
     return ConversationHandler.END
 
+def restaurant_info(update: Update, context: CallbackContext) -> int:
+    category = context.chat_data["choice"]
+    context.chat_data[category] = update.message.text
+    del context.chat_data["choice"]
+
+    update.message.reply_text(
+        text="<b><u>SUCCESSFULLY ADDED</u></b>\n\nUse /restaurants to view the potential restaurants list.",
+        parse_mode='HTML'
+    )
+
+    return ConversationHandler.END
+
 def done(update: Update, context: CallbackContext) -> int:
     if 'choice' in context.bot_data:
         del context.bot_data['choice']
 
     update.message.reply_text(
-        text="<b><u>SUCCESSFULLY LOGGED</u></b>\n\nUse /logs to view the log list.",
+        text="There was an error. Restart the process.",
         parse_mode='HTML'
     )
 
@@ -84,14 +114,26 @@ def done(update: Update, context: CallbackContext) -> int:
 def commands_list(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
         text="<b><u>Foo'Croo Bot Commands List</u></b>\n\n"
-        "/start - <i>starts the logging process</i>\n"
+        "/start - <i>starts the process</i>\n"
         "/logs - <i>the complete Foo'Croo Log List</i>\n"
-        "/delete - <i>deletes a specified entry</i>\n"
+        "/restaurants - <i>the potential Foo'Croo Restaurant List\n"
+        "/delete - <i>deletes a specified log entry</i>\n"
         "/source - <i>the source code of this bot</i>",
         parse_mode='HTML'
     )
-    
 
+def log_list(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(
+        text=f"<b><u>Foo'Croo Log List</u></b>\n{format_log(context.bot_data)}",
+        parse_mode='HTML'
+    )
+
+def restaurant_list(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(
+        text=f"<b><u>Potential Foo'Croo Restaurants List</u></b>\n{format_restaurants(context.chat_data)}",
+        parse_mode='HTML'
+    )
+    
 def source_code(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
         text="You can find the source code for this project at:\n\nhttps://github.com/fluxedd/FooCrooBot"
@@ -104,7 +146,7 @@ def delete_entry(update: Update, context: CallbackContext):
         parse_mode='HTML'
     )
     
-    return USER_CHOICE
+    return LOG_CHOICE
 
 def confirm_delete(update: Update, context: CallbackContext):
     context.bot_data.pop(update.message.text)
@@ -117,8 +159,8 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    # restaurants_persistence = PicklePersistence(filename='potentials')
-    updater = Updater(token="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8")
+    updater = Updater(token=TOKEN, persistence=persistence)
+    
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
@@ -127,15 +169,26 @@ def main() -> None:
             CHOOSING: [
                 MessageHandler(Filters.regex('^Main Quest$'), mq_restaurant_choice), 
                 MessageHandler(Filters.regex('^Side Quest$'), sq_choice),
+                MessageHandler(Filters.regex('^Add Restaurant$'), restaurant_choice),
             ],
-            USER_CHOICE: [
+            LOG_CHOICE: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), quest_details
-                )
+                ),
             ],
-            TYPING_REPLY: [
+            RESTAURANT_CHOICE: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), restaurant_details
+                ),
+            ],
+            LOG_REPLY: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_info
+                ),
+            ],
+            RESTAURANT_REPLY: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), restaurant_info
                 )
             ]
         },
@@ -147,7 +200,7 @@ def main() -> None:
     delete_conv_handler = ConversationHandler(
         entry_points=[CommandHandler('delete', delete_entry)],
         states={
-            USER_CHOICE: [
+            LOG_CHOICE: [
                 MessageHandler(
                     Filters.text & ~(Filters.regex('^Yes$')), confirm_delete
                 )
@@ -155,18 +208,19 @@ def main() -> None:
         },
         fallbacks=[MessageHandler(Filters.text, done)],
     )
-
+    
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(delete_conv_handler)
 
     dispatcher.add_handler(CommandHandler("logs", log_list))
+    dispatcher.add_handler(CommandHandler("restaurants", restaurant_list))
     dispatcher.add_handler(CommandHandler("commands", commands_list))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path="5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8",
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAHp1YqApL7auNrYttVKNtM6L-V97Mlt8l8"), 
+                          url_path=TOKEN,
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
     updater.idle()
 
 if __name__ == '__main__':
