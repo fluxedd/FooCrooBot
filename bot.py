@@ -1,9 +1,6 @@
-from cgitb import html
 import os
-from turtle import update
 from typing import Dict
-from setuptools import Command
-from telegram import Bot, ParseMode, ReplyKeyboardMarkup, Update
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 from dotenv import load_dotenv
 
