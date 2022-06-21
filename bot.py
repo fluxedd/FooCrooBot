@@ -113,7 +113,7 @@ def commands_list(update: Update, context: CallbackContext) -> str:
         text="<b><u>Foo'Croo Bot Commands List</u></b>\n\n"
         "/start - <i>starts the process</i>\n"
         "/logs - <i>the complete Foo'Croo Log List</i>\n"
-        "/restaurants - <i>the potential Foo'Croo Restaurant List\n"
+        "/restaurants - <i>the potential Foo'Croo Restaurant List</i>\n"
         "/delete - <i>deletes a specified log entry</i>\n"
         "/source - <i>the source code of this bot</i>",
         parse_mode='HTML'
