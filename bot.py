@@ -3,27 +3,36 @@ from typing import Dict
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 from dotenv import load_dotenv
+import psycopg2
+import psycopg2.extras
 
 load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
-TOKEN = os.getenv("TOKEN")
-CHOOSING, LOG_REPLY, RESTAURANT_REPLY, LOG_CHOICE, RESTAURANT_CHOICE = range(5)
+TOKEN = os.environ.get('BOT_TOKEN')
+
+CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
+
+hostname = os.environ.get('DB_HOST')
+database = os.environ.get('DB_DB')
+username = os.environ.get('DB_USER')
+password = os.environ.get('DB_PASS')
+port = 5432  
+
+conn = psycopg2.connect(
+    host = hostname,
+    dbname = database,
+    user = username,
+    password = password,
+    port = port
+)
+
+cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 reply_choices = [
-    ['Main Quest', 'Side Quest'],
-    ['Add Restaurant']
+    ['Main Quest', 'Side Quest']
 ]
 markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True, selective=True)
- 
-def format_log(log_data: Dict[str, str]) -> str:
-    log = [f'\n{key} \nAttendees: {value}' for key, value in log_data.items()]
-    return "\n".join(log)
-
-def format_restaurants(restaurant_data: Dict[str, str]) -> str:
-    list = [f'\n{key} @ {value}' for key, value in restaurant_data.items()]
-    return "\n".join(list)
-
 
 def start(update: Update, context: CallbackContext) -> int:
     reply_text="Please choose an option:"
@@ -33,80 +42,79 @@ def start(update: Update, context: CallbackContext) -> int:
 
     return CHOOSING
 
-def mq_restaurant_choice(update: Update, context: CallbackContext) -> int:
+def log_restaurant(update: Update, context: CallbackContext) -> int:
+    if update.message.text == 'Main Quest':
+        type = 'MQ'
+    if update.message.text == 'Side Quest':
+        type = 'SQ'
+    context.user_data['type'] = type
     update.message.reply_text(
-        'Enter the name of the restaurant and date:\n<i>example: Choichi Ramen - June 9 2022 - MQ</i>',
+        '<b>Enter the name of the restaurant:</b>\n<i>example: Choichi Ramen</i>',
         parse_mode='HTML'
     )
 
-    return LOG_CHOICE
+    return RESTO_CHOICE
 
-def sq_choice(update: Update, context: CallbackContext) -> int:
-    update.message.reply_text(
-        "Enter the name of the side quest:\n<i>example: Ken's Rerun - June 27 2022 - SQ</i>",
-        parse_mode='HTML'
-    )
+def log_date(update: Update, context: CallbackContext) -> int:
+    context.user_data['resto'] = update.message.text
+    update.message.reply_text(text="<b>Enter the date (YYYY-MM-DD):</b> \n<i>example: 2022-06-27</i>", parse_mode='HTML')
 
-    return LOG_CHOICE
+    return DATE
 
-def restaurant_choice(update: Update, context: CallbackContext) -> int:
-    update.message.reply_text(
-        "Enter the potential Foo'Croo restaurant:\n<i>example: East Ocean</i>",
-        parse_mode='HTML'
-    )
+def log_attendees(update: Update, context: CallbackContext) -> int:
+    context.user_data['date'] = update.message.text
+    update.message.reply_text(text="<b>List the attendees:</b> \n<i>example: Eril, Mark, Jericho, Nick</i>", parse_mode='HTML')
 
-    return RESTAURANT_CHOICE
+    return ATTENDEES
 
-def quest_details(update: Update, context: CallbackContext) -> int:
-    context.bot_data['choice'] = update.message.text
-    reply_text = f'Who are the participants to go to {update.message.text}?'
+def logged(update: Update, context: CallbackContext):
+    context.user_data['attendees'] = update.message.text
 
-    update.message.reply_text(reply_text)
-
-    return LOG_REPLY
-
-def restaurant_details(update: Update, context: CallbackContext) -> int:
-    context.chat_data['choice'] = update.message.text
-    reply_text = f'What is the address of {update.message.text}?'
-
-    update.message.reply_text(reply_text)
-
-    return RESTAURANT_REPLY
-
-def log_info(update: Update, context: CallbackContext) -> int:
-    category = context.bot_data["choice"]
-    context.bot_data[category] = update.message.text
-    del context.bot_data["choice"]
-
+    log_script = "INSERT INTO logs (restaurant, date, attendees, quest_type) VALUES (%s, %s, %s, %s)"
+    log_insert = (context.user_data['resto'], context.user_data['date'], context.user_data['attendees'], context.user_data['type'])
+    cur.execute(log_script, log_insert)
+    conn.commit()
+    
     update.message.reply_text(
         text="<b><u>SUCCESSFULLY LOGGED</u></b>\n\nUse /logs to view the log list.",
         parse_mode='HTML'
     )
 
-    return ConversationHandler.END
-
-def restaurant_info(update: Update, context: CallbackContext) -> int:
-    category = context.chat_data["choice"]
-    context.chat_data[category] = update.message.text
-    del context.chat_data["choice"]
-
-    update.message.reply_text(
-        text="<b><u>SUCCESSFULLY ADDED</u></b>\n\nUse /restaurants to view the potential restaurants list.",
-        parse_mode='HTML'
-    )
+    del context.user_data['type']
+    del context.user_data['resto']
+    del context.user_data['date']
+    del context.user_data['attendees']
 
     return ConversationHandler.END
 
-def done(update: Update, context: CallbackContext) -> int:
-    if 'choice' in context.bot_data:
-        del context.bot_data['choice']
+# def restaurant_choice(update: Update, context: CallbackContext) -> int:
+#     update.message.reply_text(
+#         "Enter the potential Foo'Croo restaurant:\n<i>example: East Ocean</i>",
+#         parse_mode='HTML'
+#     )
 
-    update.message.reply_text(
-        text="There was an error. Restart the process.",
-        parse_mode='HTML'
-    )
+#     return RESTAURANT_CHOICE
 
-    return ConversationHandler.END
+# def restaurant_details(update: Update, context: CallbackContext) -> int:
+#     context.chat_data['choice'] = update.message.text
+#     reply_text = f'What is the address of {update.message.text}?'
+
+#     update.message.reply_text(reply_text)
+
+#     return RESTAURANT_REPLY
+
+
+# def restaurant_info(update: Update, context: CallbackContext) -> int:
+#     category = context.chat_data["choice"]
+#     context.chat_data[category] = update.message.text
+#     del context.chat_data["choice"]
+
+#     update.message.reply_text(
+#         text="<b><u>SUCCESSFULLY ADDED</u></b>\n\nUse /restaurants to view the potential restaurants list.",
+#         parse_mode='HTML'
+#     )
+
+    # return ConversationHandler.END
 
 def commands_list(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
@@ -119,31 +127,35 @@ def commands_list(update: Update, context: CallbackContext) -> str:
         parse_mode='HTML'
     )
 
-def log_list(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(
-        text=f"<b><u>Foo'Croo Log List</u></b>\n{format_log(context.bot_data)}",
-        parse_mode='HTML'
-    )
-
-def restaurant_list(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(
-        text=f"<b><u>Potential Foo'Croo Restaurants List</u></b>\n{format_restaurants(context.chat_data)}",
-        parse_mode='HTML'
-    )
-    
 def source_code(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
         text="You can find the source code for this project at:\n\nhttps://github.com/fluxedd/FooCrooBot"
     )
 
-def delete_entry(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        text="Enter the log name of the entry to be removed:\n"
-             "<i>example: copy and paste -> Ken's Rerun - June 27 2022 - SQ</i>",
-        parse_mode='HTML'
-    )
+# def delete_entry(update: Update, context: CallbackContext):
+#     update.message.reply_text(
+#         text="Enter the log name of the entry to be removed:\n"
+#              "<i>example: copy and paste -> Ken's Rerun - June 27 2022 - SQ</i>",
+#         parse_mode='HTML'
+#     )
     
-    return LOG_CHOICE
+#     return LOG_CHOICE
+
+def logs(update: Update, context: CallbackContext):
+    cur.execute('SELECT restaurant, date, attendees, quest_type FROM logs ORDER BY date' )
+    data = ''
+    for record in cur.fetchall():
+        data += f"\n\n<b>{record['restaurant']}</b> | {record['date']} | {record['quest_type']} \n<b>Attendees: </b>{record['attendees']}"
+        
+    update.message.reply_text(text="<b><u>Foo'Croo Log List</u></b>" + data, parse_mode='HTML')
+
+def flush(update: Update, context: CallbackContext):
+    del context.user_data['type']
+    del context.user_data['resto']
+    del context.user_data['date']
+    del context.user_data['attendees']
+
+    update.message.reply_text("Please restart the process using /start.")
 
 def confirm_delete(update: Update, context: CallbackContext):
     context.bot_data.pop(update.message.text)
@@ -156,7 +168,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token="5347268144:AAFXNbTHI2JZ8FT32CT8P6j7viv43vAFbgQ", persistence=persistence)
+    updater = Updater(token=TOKEN, persistence=persistence)
     
     dispatcher = updater.dispatcher
 
@@ -164,60 +176,54 @@ def main() -> None:
         entry_points=[CommandHandler('start', start)],
         states={
             CHOOSING: [
-                MessageHandler(Filters.regex('^Main Quest$'), mq_restaurant_choice), 
-                MessageHandler(Filters.regex('^Side Quest$'), sq_choice),
-                MessageHandler(Filters.regex('^Add Restaurant$'), restaurant_choice),
+                MessageHandler(Filters.regex('^Main Quest$') | Filters.regex('^Side Quest$'), log_restaurant),
             ],
-            LOG_CHOICE: [
+            RESTO_CHOICE: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), quest_details
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_date
                 ),
             ],
-            RESTAURANT_CHOICE: [
+            DATE: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), restaurant_details
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_attendees
                 ),
             ],
-            LOG_REPLY: [
+            ATTENDEES: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_info
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), logged
                 ),
             ],
-            RESTAURANT_REPLY: [
-                MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), restaurant_info
-                )
-            ]
         },
-        fallbacks=[MessageHandler(Filters.text, done)],
+        fallbacks=[MessageHandler(Filters.text, flush)],
         name="log_convo",
         persistent=True,
     )
 
-    delete_conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('delete', delete_entry)],
-        states={
-            LOG_CHOICE: [
-                MessageHandler(
-                    Filters.text & ~(Filters.regex('^Yes$')), confirm_delete
-                )
-            ]
-        },
-        fallbacks=[MessageHandler(Filters.text, done)],
-    )
+    # delete_conv_handler = ConversationHandler(
+    #     entry_points=[CommandHandler('delete', delete_entry)],
+    #     states={
+    #         LOG_CHOICE: [
+    #             MessageHandler(
+    #                 Filters.text & ~(Filters.regex('^Yes$')), confirm_delete
+    #             )
+    #         ]
+    #     },
+    #     fallbacks=[MessageHandler(Filters.text, done)],
+    # )
     
     dispatcher.add_handler(conv_handler)
-    dispatcher.add_handler(delete_conv_handler)
+    # dispatcher.add_handler(delete_conv_handler)
 
-    dispatcher.add_handler(CommandHandler("logs", log_list))
-    dispatcher.add_handler(CommandHandler("restaurants", restaurant_list))
     dispatcher.add_handler(CommandHandler("commands", commands_list))
+    dispatcher.add_handler(CommandHandler('logs', logs))
+    dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path="5347268144:AAFXNbTHI2JZ8FT32CT8P6j7viv43vAFbgQ",
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + "5347268144:AAFXNbTHI2JZ8FT32CT8P6j7viv43vAFbgQ"), 
+                          url_path=TOKEN,
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
+    
     updater.idle()
 
 if __name__ == '__main__':
