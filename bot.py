@@ -74,6 +74,8 @@ def logged(update: Update, context: CallbackContext):
     del context.user_data['date']
     del context.user_data['attendees']
 
+    conn.close()
+
     return ConversationHandler.END
 
 # def restaurant_choice(update: Update, context: CallbackContext) -> int:
@@ -137,6 +139,8 @@ def logs(update: Update, context: CallbackContext):
         data += f"\n\n<b>{record['restaurant']}</b> | {record['date']} | {record['quest_type']} \n<b>Attendees: </b>{record['attendees']}"
         
     update.message.reply_text(text="<b><u>Foo'Croo Log List</u></b>" + data, parse_mode='HTML')
+
+    conn.close()
 
 def flush(update: Update, context: CallbackContext):
     del context.user_data['type']
@@ -204,14 +208,15 @@ def main() -> None:
     # dispatcher.add_handler(delete_conv_handler)
 
     dispatcher.add_handler(CommandHandler("commands", commands_list))
-    dispatcher.add_handler(CommandHandler('logss', logs))
+    dispatcher.add_handler(CommandHandler('logs', logs))
     dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
-    updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN,
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
+    # updater.start_webhook(listen="0.0.0.0",
+    #                       port=PORT,
+    #                       url_path=TOKEN,
+    #                       webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
+    updater.start_polling()
     
     updater.idle()
 
