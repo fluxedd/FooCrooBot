@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import psycopg2
 import psycopg2.extras
 
-load_dotenv()
 
 PORT = int(os.environ.get('PORT', '8443'))
 TOKEN = os.environ.get('BOT_TOKEN')
@@ -215,7 +214,7 @@ def main() -> None:
     # dispatcher.add_handler(delete_conv_handler)
 
     dispatcher.add_handler(CommandHandler("commands", commands_list))
-    dispatcher.add_handler(CommandHandler('logss', logs))
+    dispatcher.add_handler(CommandHandler('logs', logs))
     dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
