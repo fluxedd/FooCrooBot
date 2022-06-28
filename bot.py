@@ -212,11 +212,11 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
-    # updater.start_webhook(listen="0.0.0.0",
-    #                       port=PORT,
-    #                       url_path=TOKEN,
-    #                       webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
-    updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0",
+                          port=PORT,
+                          url_path=TOKEN,
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + TOKEN), 
+    # updater.start_polling()
     
     updater.idle()
 
