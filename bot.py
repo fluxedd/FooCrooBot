@@ -204,7 +204,7 @@ def main() -> None:
     # dispatcher.add_handler(delete_conv_handler)
 
     dispatcher.add_handler(CommandHandler("commands", commands_list))
-    dispatcher.add_handler(CommandHandler('logs', logs))
+    dispatcher.add_handler(CommandHandler('logss', logs))
     dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
