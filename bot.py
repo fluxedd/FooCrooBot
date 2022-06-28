@@ -12,19 +12,9 @@ TOKEN = os.environ.get('BOT_TOKEN')
 
 CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
 
-hostname = os.environ.get('DB_HOST')
-database = os.environ.get('DB_DB')
-username = os.environ.get('DB_USER')
-password = os.environ.get('DB_PASS')
-port = 5432  
+DATABASE_URL = os.environ.get('DB_URL')
 
-conn = psycopg2.connect(
-    host = hostname,
-    dbname = database,
-    user = username,
-    password = password,
-    port = port
-)
+conn = psycopg2.connect(DATABASE_URL)
 
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
