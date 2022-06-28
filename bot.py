@@ -14,7 +14,7 @@ CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
 
 DATABASE_URL = os.environ.get('DB_URL')
 
-conn = psycopg2.connect(DATABASE_URL)
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
