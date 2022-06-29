@@ -224,7 +224,7 @@ def main() -> None:
     
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CommandHandler('commands', commands_list))
-    dispatcher.add_handler(CommandHandler('logs', logs))
+    dispatcher.add_handler(CommandHandler('logss', logs))
     dispatcher.add_handler(CommandHandler('restaurants', restaurant_list))
     dispatcher.add_handler(CommandHandler('source', source_code))
     dispatcher.add_handler(CommandHandler('flush', flush))
