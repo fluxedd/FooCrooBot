@@ -158,6 +158,7 @@ def flush(update: Update, context: CallbackContext):
     # del context.user_data['attendees']
 
     update.message.reply_text("Please restart the process using /start.")
+    return ConversationHandler.END
 
 def confirm_delete(update: Update, context: CallbackContext):
     context.bot_data.pop(update.message.text)
