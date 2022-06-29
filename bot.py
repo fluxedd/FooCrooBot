@@ -21,10 +21,10 @@ pwd = os.environ.get('DB_PASS')
 # conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 conn = psycopg2.connect(
-    host = host,
-    dbname = db,
-    user = user,
-    password = pwd,
+    host = 'ec2-3-222-74-92.compute-1.amazonaws.com',
+    dbname = 'd2pkondhjslof6',
+    user = 'hzlxttvlviyasr',
+    password = 'fbaa7f50aa9f6545839e142bab757708531bfe18f282a7abdc04d8b2b66b229b',
     port = 5432
 )
 
