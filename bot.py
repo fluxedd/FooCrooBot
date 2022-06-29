@@ -6,15 +6,17 @@ from dotenv import load_dotenv
 import psycopg2
 import psycopg2.extras
 
+DATABASE_URL = os.environ.get('DB_URL')
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 PORT = int(os.environ.get('PORT', '8443'))
 TOKEN = os.environ.get('BOT_TOKEN')
 
 CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
 
-DATABASE_URL = os.environ.get('DB_URL')
 
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+
 
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
