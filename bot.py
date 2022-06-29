@@ -1,5 +1,4 @@
 import os
-from typing import Dict
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
 import psycopg2
