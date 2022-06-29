@@ -14,8 +14,15 @@ CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
 
 DATABASE_URL = os.environ.get('DB_URL')
 
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
+conn = psycopg2.connect(
+    host = 'ec2-3-222-74-92.compute-1.amazonaws.com',
+    dbname = 'd2pkondhjslof6',
+    user = 'hzlxttvlviyasr',
+    password = 'fbaa7f50aa9f6545839e142bab757708531bfe18f282a7abdc04d8b2b66b229b',
+    port = 5432
+)
 
 
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
