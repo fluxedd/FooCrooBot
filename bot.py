@@ -224,7 +224,7 @@ def main() -> None:
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
                           url_path='5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY',
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + '5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY'), 
+                          webhook_url='https://foocroo-bot.herokuapp.com/' + '5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY'), 
     # updater.start_polling()
     
     updater.idle()
