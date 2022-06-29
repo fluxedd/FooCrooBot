@@ -170,7 +170,7 @@ def confirm_delete(update: Update, context: CallbackContext):
 
 def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token=token, persistence=persistence)
+    updater = Updater(token='5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY', persistence=persistence)
     
     dispatcher = updater.dispatcher
 
@@ -217,14 +217,14 @@ def main() -> None:
     # dispatcher.add_handler(delete_conv_handler)
 
     dispatcher.add_handler(CommandHandler("commands", commands_list))
-    dispatcher.add_handler(CommandHandler('logss', logs))
+    dispatcher.add_handler(CommandHandler('logs', logs))
     dispatcher.add_handler(CommandHandler('flush', flush))
     dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path=token,
-                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + token), 
+                          url_path='5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY',
+                          webhook_url='https://fierce-sierra-52458.herokuapp.com/' + '5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY'), 
     # updater.start_polling()
     
     updater.idle()
