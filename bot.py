@@ -2,48 +2,34 @@ import os
 from typing import Dict
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler, PicklePersistence
-from dotenv import load_dotenv
 import psycopg2
 import psycopg2.extras
 
-load_dotenv()
+PORT = os.environ.get('PORT', '8443')
+TOKEN = os.environ.get('BOT_TOKEN')
 
-PORT = int(os.environ.get('PORT', '8443'))
+DB = os.environ.get('DB_DB')
+HOST = os.environ.get('DB_HOST')
+USER = os.environ.get('DB_USER')
+PWD = os.environ.get('DB_PASS')
 
-token = os.environ.get('BOT_TOKEN')
-
-CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, STOP = range(5)
-
-# db = os.environ.get('DB_DB')
-# host = os.environ.get('DB_HOST')
-# user = os.environ.get('DB_USER')
-# pwd = os.environ.get('DB_PASS')
-
-# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-
-# conn = psycopg2.connect(
-#     host = 'ec2-3-222-74-92.compute-1.amazonaws.com',
-#     dbname = 'd2pkondhjslof6',
-#     user = 'hzlxttvlviyasr',
-#     password = 'fbaa7f50aa9f6545839e142bab757708531bfe18f282a7abdc04d8b2b66b229b',
-#     port = 5432
-# )
+CHOOSING, RESTO_CHOICE, DATE, ATTENDEES, RESTAURANT, ADDRESS, DELETE_LOG, LOG_DELETED = range(8)
 
 conn = psycopg2.connect(
-    host = os.getenv('HOST'),
-    dbname = os.getenv('DBNAME'),
-    user = os.getenv('USER'),
-    password = os.getenv('PASS'),
+    host = HOST,
+    dbname = DB,
+    user = USER,
+    password = PWD,
     port = 5432
 )
-
-
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 reply_choices = [
-    ['Main Quest', 'Side Quest']
+    ['Main Quest', 'Side Quest'],
+    ['Add Restaurant', 'Delete Log'],
 ]
-markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True, selective=True)
+
+markup = ReplyKeyboardMarkup(reply_choices, one_time_keyboard=True, selective=True, resize_keyboard=True)
 
 def start(update: Update, context: CallbackContext) -> int:
     reply_text="Please choose an option:"
@@ -98,59 +84,64 @@ def logged(update: Update, context: CallbackContext):
 
     return ConversationHandler.END
 
-# def restaurant_choice(update: Update, context: CallbackContext) -> int:
-#     update.message.reply_text(
-#         "Enter the potential Foo'Croo restaurant:\n<i>example: East Ocean</i>",
-#         parse_mode='HTML'
-#     )
-
-#     return RESTAURANT_CHOICE
-
-# def restaurant_details(update: Update, context: CallbackContext) -> int:
-#     context.chat_data['choice'] = update.message.text
-#     reply_text = f'What is the address of {update.message.text}?'
-
-#     update.message.reply_text(reply_text)
-
-#     return RESTAURANT_REPLY
-
-
-# def restaurant_info(update: Update, context: CallbackContext) -> int:
-#     category = context.chat_data["choice"]
-#     context.chat_data[category] = update.message.text
-#     del context.chat_data["choice"]
-
-#     update.message.reply_text(
-#         text="<b><u>SUCCESSFULLY ADDED</u></b>\n\nUse /restaurants to view the potential restaurants list.",
-#         parse_mode='HTML'
-#     )
-
-    # return ConversationHandler.END
-
-def commands_list(update: Update, context: CallbackContext) -> str:
+def add_restaurant(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
-        text="<b><u>Foo'Croo Bot Commands List</u></b>\n\n"
-        "/start - <i>starts the process</i>\n"
-        "/logs - <i>the complete Foo'Croo Log List</i>\n"
-        "/restaurants - <i>the potential Foo'Croo Restaurant List</i>\n"
-        "/delete - <i>deletes a specified log entry</i>\n"
-        "/source - <i>the source code of this bot</i>",
+        '<b>Enter the name of a potential restaurant:</b>\n<i>example: Choichi Ramen</i>',
         parse_mode='HTML'
     )
 
-def source_code(update: Update, context: CallbackContext) -> str:
+    return RESTAURANT
+
+def add_address(update: Update, context: CallbackContext) -> int:
+    context.user_data['restaurant'] = update.message.text
     update.message.reply_text(
-        text="You can find the source code for this project at:\n\nhttps://github.com/fluxedd/FooCrooBot"
+        '<b>Enter the address of the restaurant:</b>',
+        parse_mode='HTML'
     )
 
-# def delete_entry(update: Update, context: CallbackContext):
-#     update.message.reply_text(
-#         text="Enter the log name of the entry to be removed:\n"
-#              "<i>example: copy and paste -> Ken's Rerun - June 27 2022 - SQ</i>",
-#         parse_mode='HTML'
-#     )
+    return ADDRESS
+
+def restaurant_added(update: Update, context: CallbackContext): 
+    context.user_data['address'] = update.message.text
+    added_by = update.message.from_user.first_name
+
+    add_script = "INSERT INTO restaurants (restaurant, address, added_by) VALUES (%s, %s, %s)"
+    add_insert = (context.user_data['restaurant'], context.user_data['address'], added_by)
     
-#     return LOG_CHOICE
+    cur.execute(add_script, add_insert)
+    conn.commit()
+
+    update.message.reply_text(
+        text="<b><u>SUCCESSFULLY ADDED</u></b>\n\nUse /restaurants to view the potential restaurants list.",
+        parse_mode='HTML'
+    )
+
+    del context.user_data['restaurant']
+    del context.user_data['address']
+
+    return ConversationHandler.END
+
+def delete_log(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        '<b>Enter the log to be deleted:</b>\n<i>example: RFK Rerun #1</i>',
+        parse_mode='HTML'
+    )
+
+    return LOG_DELETED
+
+def log_deleted(update: Update, context: CallbackContext): 
+    delete_script = "DELETE FROM logs WHERE restaurant = %s"
+    record = (update.message.text,)
+
+    cur.execute(delete_script, record)
+    conn.commit()
+
+    update.message.reply_text(
+        text="<b><u>SUCCESSFULLY DELETED</u></b>\n\nUse /logs to view the updated log list.",
+        parse_mode='HTML'
+    )
+
+    return ConversationHandler.END
 
 def logs(update: Update, context: CallbackContext):
     cur.execute('SELECT restaurant, date, attendees, quest_type FROM logs ORDER BY date' )
@@ -160,27 +151,36 @@ def logs(update: Update, context: CallbackContext):
         
     update.message.reply_text(text="<b><u>Foo'Croo Log List</u></b>" + data, parse_mode='HTML')
 
-def flush(update: Update, context: CallbackContext):
-    # del context.user_data['type']
-    # del context.user_data['resto']
-    # del context.user_data['date']
-    # del context.user_data['attendees']
+def restaurant_list(update: Update, context: CallbackContext):
+    cur.execute('SELECT restaurant, address, added_by FROM restaurants')
+    data = ''
+    for record in cur.fetchall():
+        data += f"\n\n<b>{record['restaurant']}</b> @ {record['address']}\n  <i>added by: {record['added_by']}</i>"
+        
+    update.message.reply_text(text="<b><u>Potential Foo'Croo Restaurants List</u></b>" + data, parse_mode='HTML')
 
-    update.message.reply_text("Please restart the process using /start.")
-    return ConversationHandler.END
-
-def confirm_delete(update: Update, context: CallbackContext):
-    context.bot_data.pop(update.message.text)
+def commands_list(update: Update, context: CallbackContext) -> str:
     update.message.reply_text(
-        text=f"{update.message.text} - <b><u>SUCCESSFULLY REMOVED</u></b>\n\nUse /logs to view the log list.",
+        text="<b><u>Foo'Croo Bot Commands List</u></b>\n\n"
+        "/start - starts the process\n"
+        "/logs - the complete Foo'Croo Log List\n"
+        "/restaurants - the potential Foo'Croo Restaurant List\n"
+        "/source - the source code of this bot",
         parse_mode='HTML'
     )
 
+def source_code(update: Update, context: CallbackContext) -> str:
+    update.message.reply_text(
+        text="You can find the source code for this project at:\n\nhttps://github.com/fluxedd/FooCrooBot"
+    )
+
+def flush(update: Update, context: CallbackContext):
+    update.message.reply_text("Please restart the process using /start.")
     return ConversationHandler.END
 
 def main() -> None: 
     persistence = PicklePersistence(filename='loglist')
-    updater = Updater(token='5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY', persistence=persistence)
+    updater = Updater(token=TOKEN, persistence=persistence)
     
     dispatcher = updater.dispatcher
 
@@ -189,53 +189,50 @@ def main() -> None:
         states={
             CHOOSING: [
                 MessageHandler(Filters.regex('^Main Quest$') | Filters.regex('^Side Quest$'), log_restaurant),
+                MessageHandler(Filters.regex('^Add Restaurant$'), add_restaurant),
+                MessageHandler(Filters.regex('^Delete Log$'), delete_log),
             ],
             RESTO_CHOICE: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_date
-                ),
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_date),
             ],
             DATE: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_attendees
-                ),
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_attendees),
             ],
             ATTENDEES: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), logged
-                ),
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), logged),
             ],
+            RESTAURANT: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), add_address)
+            ],
+            ADDRESS: [
+                MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), restaurant_added)
+            ],
+            LOG_DELETED: [
+               MessageHandler(
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), log_deleted) 
+            ]
         },
         fallbacks=[MessageHandler(Filters.text, flush)],
         name="log_convo",
         persistent=True,
     )
-
-    # delete_conv_handler = ConversationHandler(
-    #     entry_points=[CommandHandler('delete', delete_entry)],
-    #     states={
-    #         LOG_CHOICE: [
-    #             MessageHandler(
-    #                 Filters.text & ~(Filters.regex('^Yes$')), confirm_delete
-    #             )
-    #         ]
-    #     },
-    #     fallbacks=[MessageHandler(Filters.text, done)],
-    # )
     
     dispatcher.add_handler(conv_handler)
-    # dispatcher.add_handler(delete_conv_handler)
-
-    dispatcher.add_handler(CommandHandler("commands", commands_list))
+    dispatcher.add_handler(CommandHandler('commands', commands_list))
     dispatcher.add_handler(CommandHandler('logs', logs))
+    dispatcher.add_handler(CommandHandler('restaurants', restaurant_list))
+    dispatcher.add_handler(CommandHandler('source', source_code))
     dispatcher.add_handler(CommandHandler('flush', flush))
-    dispatcher.add_handler(CommandHandler("source", source_code))
 
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
-                          url_path='5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY',
-                          webhook_url='https://foocroo-bot.herokuapp.com/' + '5347268144:AAEWInNhiwuJNKoY-F1c-UP3C8U079LuboY'), 
-    # updater.start_polling()
+                          url_path=TOKEN,
+                          webhook_url='https://foocroo-bot.herokuapp.com/' + TOKEN), 
     
     updater.idle()
 
