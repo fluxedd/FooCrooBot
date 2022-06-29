@@ -59,7 +59,7 @@ def log_date(update: Update, context: CallbackContext) -> int:
 
 def log_attendees(update: Update, context: CallbackContext) -> int:
     context.user_data['date'] = update.message.text
-    update.message.reply_text(text="<b>List the attendees:</b> \n<i>example: Eril, Mark, Jericho, Nick</i>", parse_mode='HTML')
+    update.message.reply_text(text="<b>List the attendees:</b> \n<i>example: Name, Name, Name, Name</i>", parse_mode='HTML')
 
     return ATTENDEES
 
