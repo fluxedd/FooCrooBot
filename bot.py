@@ -152,10 +152,10 @@ def logs(update: Update, context: CallbackContext):
     update.message.reply_text(text="<b><u>Foo'Croo Log List</u></b>" + data, parse_mode='HTML')
 
 def flush(update: Update, context: CallbackContext):
-    del context.user_data['type']
-    del context.user_data['resto']
-    del context.user_data['date']
-    del context.user_data['attendees']
+    # del context.user_data['type']
+    # del context.user_data['resto']
+    # del context.user_data['date']
+    # del context.user_data['attendees']
 
     update.message.reply_text("Please restart the process using /start.")
 
