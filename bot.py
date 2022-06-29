@@ -83,8 +83,6 @@ def logged(update: Update, context: CallbackContext):
     del context.user_data['date']
     del context.user_data['attendees']
 
-    conn.close()
-
     return ConversationHandler.END
 
 # def restaurant_choice(update: Update, context: CallbackContext) -> int:
@@ -148,8 +146,6 @@ def logs(update: Update, context: CallbackContext):
         data += f"\n\n<b>{record['restaurant']}</b> | {record['date']} | {record['quest_type']} \n<b>Attendees: </b>{record['attendees']}"
         
     update.message.reply_text(text="<b><u>Foo'Croo Log List</u></b>" + data, parse_mode='HTML')
-
-    conn.close()
 
 def flush(update: Update, context: CallbackContext):
     del context.user_data['type']
